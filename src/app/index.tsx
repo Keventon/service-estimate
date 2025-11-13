@@ -1,5 +1,5 @@
+import { Wallet } from "lucide-react-native";
 import { Text, View } from "react-native";
-
 export default function Index() {
   return (
     <View
@@ -11,6 +11,8 @@ export default function Index() {
       }}
     >
       <Text>Olá mundo</Text>
+
+      <Wallet size={24} strokeWidth={1.8} />
     </View>
   );
 }
