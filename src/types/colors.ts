@@ -23,4 +23,7 @@ export const colors = {
     infoBase: "#2AA1D9",
     infoDark: "#1D7096",
   },
+  white: "#FFFFFF",
+  black: "#000000",
+  transparent: "transparent",
 };
