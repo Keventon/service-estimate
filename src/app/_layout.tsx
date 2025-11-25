@@ -7,6 +7,7 @@ import {
 } from "@expo-google-fonts/lato";
 import { Stack } from "expo-router";
 import { View } from "react-native";
+import "react-native-gesture-handler";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
