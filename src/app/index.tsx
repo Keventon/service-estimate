@@ -57,7 +57,7 @@ export default function Index() {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: colors.base.gray100,
+        backgroundColor: colors.white,
       }}
     >
       <StatusBar barStyle="dark-content" />
@@ -104,7 +104,6 @@ export default function Index() {
           width: "100%",
           height: 1,
           backgroundColor: colors.base.gray300,
-          marginTop: 4,
         }}
       />
 
@@ -128,11 +127,11 @@ export default function Index() {
 
         <TouchableOpacity
           style={{
-            backgroundColor: colors.base.gray200,
+            backgroundColor: colors.base.gray100,
             width: 48,
             height: 48,
             borderWidth: 1,
-            borderColor: colors.base.gray300,
+            borderColor: colors.base.gray200,
             borderRadius: 999,
             alignItems: "center",
             justifyContent: "center",

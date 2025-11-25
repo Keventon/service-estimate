@@ -5,11 +5,11 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     borderRadius: 99,
-    backgroundColor: colors.base.gray200,
+    backgroundColor: colors.base.gray100,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.base.gray300,
+    borderColor: colors.base.gray200,
     flex: 1,
     height: 48,
     paddingEnd: 16,

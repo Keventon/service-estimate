@@ -4,11 +4,11 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.base.gray200,
+    backgroundColor: colors.base.gray100,
     borderRadius: 16,
     padding: 10,
     borderWidth: 1,
-    borderColor: colors.base.gray300,
+    borderColor: colors.base.gray200,
     gap: 12,
   },
   headerRow: {

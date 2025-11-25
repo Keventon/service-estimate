@@ -14,6 +14,8 @@ export function SearchInput({ ...rest }: TextInputProps) {
 
       <TextInput
         style={styles.input}
+        cursorColor={colors.principal.purpleBase}
+        selectionColor={colors.principal.purpleBase}
         placeholderTextColor={colors.base.gray500}
         {...rest}
       />

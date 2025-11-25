@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 99,
     paddingEnd: 24,
-    gap: 12,
+    gap: 8,
   },
   text: {
     color: colors.white,

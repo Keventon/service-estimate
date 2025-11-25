@@ -6,7 +6,7 @@ import { styles } from "./styles";
 export function Button() {
   return (
     <TouchableOpacity style={styles.container} activeOpacity={0.7}>
-      <Plus size={32} strokeWidth={1.4} color={colors.white} />
+      <Plus size={24} strokeWidth={1.4} color={colors.white} />
       <Text style={styles.text}>Novo</Text>
     </TouchableOpacity>
   );
