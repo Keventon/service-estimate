@@ -4,9 +4,9 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 24,
+    paddingBottom: 16,
+    padding: 12,
+    gap: 18,
   },
   header: {
     flexDirection: "row",
@@ -99,12 +99,13 @@ export const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 12,
     paddingBottom: 8,
   },
   resetButton: {
-    flex: 1,
     height: 48,
+    padding: 12,
     borderRadius: 99,
     borderWidth: 1,
     borderColor: colors.base.gray300,
@@ -118,9 +119,9 @@ export const styles = StyleSheet.create({
     color: colors.principal.purpleBase,
   },
   applyButton: {
-    flex: 1,
     height: 48,
     borderRadius: 999,
+    padding: 12,
     backgroundColor: colors.principal.purpleBase,
     flexDirection: "row",
     alignItems: "center",

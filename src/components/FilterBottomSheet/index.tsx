@@ -90,6 +90,7 @@ export const FilterBottomSheet = forwardRef<BottomSheet, Props>(
         ref={ref}
         snapPoints={snapPoints}
         index={-1}
+        handleComponent={null}
         backdropComponent={renderBackdrop}
         enablePanDownToClose
         handleIndicatorStyle={{ backgroundColor: colors.base.gray300 }}
