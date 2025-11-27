@@ -1,18 +1,22 @@
 import { Input } from "@/components/Input";
 import { colors } from "@/types/colors";
 import { fontFamily } from "@/types/fontFamily";
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import {
   Check,
   ChevronLeft,
   ClipboardList,
+  Minus,
   Pencil,
   Plus,
   Store,
   Tag,
+  Trash2,
   Wallet,
+  X,
 } from "lucide-react-native";
-import { useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -22,11 +26,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function NewService() {
   type StatusOption = "draft" | "sent" | "approved" | "rejected";
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>("draft");
   const [discountPercent, setDiscountPercent] = useState("0");
+  const [serviceTitle, setServiceTitle] = useState("Design de interfaces");
+  const [serviceDescription, setServiceDescription] = useState(
+    "Criação de wireframes e protótipos de alta fidelidade"
+  );
+  const [servicePrice, setServicePrice] = useState("3847,50");
+  const [serviceQty, setServiceQty] = useState(2);
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ["75%"], []);
 
   const servicesIncluded = [
     {
@@ -78,290 +91,450 @@ export default function NewService() {
     });
   }
 
+  function handleOpenBottomSheet() {
+    bottomSheetRef.current?.snapToIndex(0);
+  }
+
+  function handleCloseBottomSheet() {
+    bottomSheetRef.current?.close();
+  }
+
+  function handleDecreaseQty() {
+    setServiceQty((prev) => Math.max(0, prev - 1));
+  }
+
+  function handleIncreaseQty() {
+    setServiceQty((prev) => prev + 1);
+  }
+
+  function handleChangePrice(text: string) {
+    const sanitized = text.replace(/[^\d]/g, "");
+    if (!sanitized) {
+      setServicePrice("");
+      return;
+    }
+
+    const asNumber = Number(sanitized) / 100;
+    setServicePrice(
+      asNumber.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    );
+  }
+
+  const renderBackdrop = useCallback(
+    (backdropProps: any) => (
+      <BottomSheetBackdrop
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.3}
+        {...backdropProps}
+      />
+    ),
+    []
+  );
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.header}
-        activeOpacity={0.5}
-        onPress={() => router.back()}
-      >
-        <ChevronLeft strokeWidth={1.3} size={32} color={colors.base.gray600} />
-        <Text style={styles.title}>Orçamento</Text>
-      </TouchableOpacity>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.header}
+          activeOpacity={0.5}
+          onPress={() => router.back()}
+        >
+          <ChevronLeft
+            strokeWidth={1.3}
+            size={32}
+            color={colors.base.gray600}
+          />
+          <Text style={styles.title}>Orçamento</Text>
+        </TouchableOpacity>
 
-      <View style={styles.divisor} />
+        <View style={styles.divisor} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        <View style={styles.infoGeneralContainer}>
-          <View style={styles.infoGeneralHeader}>
-            <Store
-              strokeWidth={1.3}
-              size={18}
-              color={colors.principal.purpleBase}
-            />
-            <Text style={styles.titleInfoGeneral}>Informações Gerais</Text>
-          </View>
-
-          <View style={styles.divisor} />
-
-          <View style={styles.formContent}>
-            <Input placeholder="Título" />
-            <Input placeholder="Cliente" />
-          </View>
-        </View>
-
-        <View style={styles.statusContainer}>
-          <View style={styles.statusHeader}>
-            <Tag
-              strokeWidth={1.4}
-              size={18}
-              color={colors.principal.purpleBase}
-            />
-            <Text style={styles.statusTitle}>Status</Text>
-          </View>
-
-          <View style={styles.divisor} />
-
-          <View style={styles.statusContent}>
-            <View style={styles.statusRow}>
-              <TouchableOpacity
-                style={styles.statusItem}
-                activeOpacity={0.7}
-                onPress={() => setSelectedStatus("draft")}
-              >
-                <View
-                  style={[
-                    styles.radio,
-                    selectedStatus === "draft" && styles.radioSelected,
-                  ]}
-                >
-                  {selectedStatus === "draft" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-
-                <View style={[styles.statusBadge, styles.draftBadge]}>
-                  <View style={[styles.badgeDot, styles.draftDot]} />
-                  <Text style={[styles.badgeText, styles.draftText]}>
-                    Rascunho
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.statusItem}
-                activeOpacity={0.7}
-                onPress={() => setSelectedStatus("approved")}
-              >
-                <View
-                  style={[
-                    styles.radio,
-                    selectedStatus === "approved" && styles.radioSelected,
-                  ]}
-                >
-                  {selectedStatus === "approved" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-
-                <View style={[styles.statusBadge, styles.approvedBadge]}>
-                  <View style={[styles.badgeDot, styles.approvedDot]} />
-                  <Text style={[styles.badgeText, styles.approvedText]}>
-                    Aprovado
-                  </Text>
-                </View>
-              </TouchableOpacity>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 120 }}
+        >
+          <View style={styles.infoGeneralContainer}>
+            <View style={styles.infoGeneralHeader}>
+              <Store
+                strokeWidth={1.3}
+                size={18}
+                color={colors.principal.purpleBase}
+              />
+              <Text style={styles.titleInfoGeneral}>Informações Gerais</Text>
             </View>
 
-            <View style={styles.statusRow}>
-              <TouchableOpacity
-                style={styles.statusItem}
-                activeOpacity={0.7}
-                onPress={() => setSelectedStatus("sent")}
-              >
-                <View
-                  style={[
-                    styles.radio,
-                    selectedStatus === "sent" && styles.radioSelected,
-                  ]}
+            <View style={styles.divisor} />
+
+            <View style={styles.formContent}>
+              <Input placeholder="Título" />
+              <Input placeholder="Cliente" />
+            </View>
+          </View>
+
+          <View style={styles.statusContainer}>
+            <View style={styles.statusHeader}>
+              <Tag
+                strokeWidth={1.4}
+                size={18}
+                color={colors.principal.purpleBase}
+              />
+              <Text style={styles.statusTitle}>Status</Text>
+            </View>
+
+            <View style={styles.divisor} />
+
+            <View style={styles.statusContent}>
+              <View style={styles.statusRow}>
+                <TouchableOpacity
+                  style={styles.statusItem}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedStatus("draft")}
                 >
-                  {selectedStatus === "sent" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
+                  <View
+                    style={[
+                      styles.radio,
+                      selectedStatus === "draft" && styles.radioSelected,
+                    ]}
+                  >
+                    {selectedStatus === "draft" && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
 
-                <View style={[styles.statusBadge, styles.sentBadge]}>
-                  <View style={[styles.badgeDot, styles.sentDot]} />
-                  <Text style={[styles.badgeText, styles.sentText]}>
-                    Enviado
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                  <View style={[styles.statusBadge, styles.draftBadge]}>
+                    <View style={[styles.badgeDot, styles.draftDot]} />
+                    <Text style={[styles.badgeText, styles.draftText]}>
+                      Rascunho
+                    </Text>
+                  </View>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.statusItem}
-                activeOpacity={0.7}
-                onPress={() => setSelectedStatus("rejected")}
-              >
-                <View
-                  style={[
-                    styles.radio,
-                    selectedStatus === "rejected" && styles.radioSelected,
-                  ]}
+                <TouchableOpacity
+                  style={styles.statusItem}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedStatus("approved")}
                 >
-                  {selectedStatus === "rejected" && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
+                  <View
+                    style={[
+                      styles.radio,
+                      selectedStatus === "approved" && styles.radioSelected,
+                    ]}
+                  >
+                    {selectedStatus === "approved" && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
 
-                <View style={[styles.statusBadge, styles.rejectedBadge]}>
-                  <View style={[styles.badgeDot, styles.rejectedDot]} />
-                  <Text style={[styles.badgeText, styles.rejectedText]}>
-                    Recusado
-                  </Text>
+                  <View style={[styles.statusBadge, styles.approvedBadge]}>
+                    <View style={[styles.badgeDot, styles.approvedDot]} />
+                    <Text style={[styles.badgeText, styles.approvedText]}>
+                      Aprovado
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.statusRow}>
+                <TouchableOpacity
+                  style={styles.statusItem}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedStatus("sent")}
+                >
+                  <View
+                    style={[
+                      styles.radio,
+                      selectedStatus === "sent" && styles.radioSelected,
+                    ]}
+                  >
+                    {selectedStatus === "sent" && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
+
+                  <View style={[styles.statusBadge, styles.sentBadge]}>
+                    <View style={[styles.badgeDot, styles.sentDot]} />
+                    <Text style={[styles.badgeText, styles.sentText]}>
+                      Enviado
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.statusItem}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedStatus("rejected")}
+                >
+                  <View
+                    style={[
+                      styles.radio,
+                      selectedStatus === "rejected" && styles.radioSelected,
+                    ]}
+                  >
+                    {selectedStatus === "rejected" && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
+
+                  <View style={[styles.statusBadge, styles.rejectedBadge]}>
+                    <View style={[styles.badgeDot, styles.rejectedDot]} />
+                    <Text style={[styles.badgeText, styles.rejectedText]}>
+                      Recusado
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.servicesContainer}>
+            <View style={styles.servicesHeader}>
+              <ClipboardList
+                strokeWidth={1.4}
+                size={18}
+                color={colors.principal.purpleBase}
+              />
+              <Text style={styles.servicesTitle}>Serviços inclusos</Text>
+            </View>
+
+            <View style={styles.divisor} />
+
+            <View style={styles.servicesContent}>
+              {servicesIncluded.map((service) => (
+                <View key={service.id} style={styles.serviceRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.serviceTitle}>{service.title}</Text>
+                    <Text style={styles.serviceDescription}>
+                      {service.description}
+                    </Text>
+                  </View>
+
+                  <View style={styles.serviceRight}>
+                    <Text style={styles.serviceAmount}>
+                      {formatCurrency(service.amount)}
+                    </Text>
+                    <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
+                  </View>
+
+                  <TouchableOpacity activeOpacity={0.7}>
+                    <Pencil
+                      strokeWidth={1.5}
+                      size={18}
+                      color={colors.principal.purpleBase}
+                    />
+                  </TouchableOpacity>
                 </View>
+              ))}
+            </View>
+
+            <View style={styles.servicesFooter}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.addServiceButton}
+                onPress={handleOpenBottomSheet}
+              >
+                <Plus
+                  size={22}
+                  strokeWidth={1.5}
+                  color={colors.principal.purpleBase}
+                />
+                <Text style={styles.addServiceText}>Adicionar serviço</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
 
-        <View style={styles.servicesContainer}>
-          <View style={styles.servicesHeader}>
-            <ClipboardList
-              strokeWidth={1.4}
-              size={18}
-              color={colors.principal.purpleBase}
-            />
-            <Text style={styles.servicesTitle}>Serviços inclusos</Text>
+          <View style={styles.investmentContainer}>
+            <View style={styles.investmentHeader}>
+              <Wallet
+                strokeWidth={1.4}
+                size={18}
+                color={colors.principal.purpleBase}
+              />
+              <Text style={styles.investmentTitle}>Investimento</Text>
+            </View>
+
+            <View style={styles.divisor} />
+
+            <View style={styles.investmentBody}>
+              <View style={styles.investmentRow}>
+                <Text style={styles.investmentLabel}>Subtotal</Text>
+
+                <View style={styles.investmentRight}>
+                  <Text style={styles.investmentItems}>
+                    {totalItems} {totalItems === 1 ? "item" : "itens"}
+                  </Text>
+                  <Text style={styles.investmentAmount}>
+                    {formatCurrency(subtotal)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.investmentRow}>
+                <View style={styles.discountLeft}>
+                  <Text style={styles.investmentLabel}>Desconto</Text>
+                  <View style={styles.discountBadge}>
+                    <TextInput
+                      style={styles.discountInput}
+                      keyboardType="numeric"
+                      maxLength={3}
+                      value={discountPercent}
+                      onChangeText={handleChangeDiscount}
+                      placeholder="0"
+                      placeholderTextColor={colors.base.gray400}
+                    />
+                    <Text style={styles.discountPercent}>%</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.discountAmount}>
+                  - {formatCurrency(discountValue)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.divisor} />
+
+            <View style={styles.investmentFooter}>
+              <Text style={styles.totalLabel}>Valor total</Text>
+
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={styles.totalOld}>{formatCurrency(subtotal)}</Text>
+                <Text style={styles.totalAmount}>{formatCurrency(total)}</Text>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.footerButtonOutline}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.footerButtonOutlineText}>Cancelar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.footerButtonPrimary}
+            activeOpacity={0.8}
+          >
+            <Check size={18} strokeWidth={2} color={colors.white} />
+            <Text style={styles.footerButtonPrimaryText}>Salvar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <BottomSheet
+        ref={bottomSheetRef}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        index={-1}
+        backdropComponent={renderBackdrop}
+      >
+        <BottomSheetView style={styles.sheetContainer}>
+          <View style={styles.sheetHeader}>
+            <Text style={styles.sheetTitle}>Serviço</Text>
+            <TouchableOpacity
+              onPress={handleCloseBottomSheet}
+              activeOpacity={0.7}
+            >
+              <X size={20} strokeWidth={2} color={colors.base.gray600} />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.divisor} />
+          <View style={styles.sheetDivisor} />
 
-          <View style={styles.servicesContent}>
-            {servicesIncluded.map((service) => (
-              <View key={service.id} style={styles.serviceRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.serviceTitle}>{service.title}</Text>
-                  <Text style={styles.serviceDescription}>
-                    {service.description}
-                  </Text>
-                </View>
+          <View style={styles.sheetContent}>
+            <View style={styles.sheetInput}>
+              <TextInput
+                value={serviceTitle}
+                onChangeText={setServiceTitle}
+                placeholder="Nome do serviço"
+                placeholderTextColor={colors.base.gray400}
+                style={styles.sheetTextInput}
+              />
+            </View>
 
-                <View style={styles.serviceRight}>
-                  <Text style={styles.serviceAmount}>
-                    {formatCurrency(service.amount)}
-                  </Text>
-                  <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
-                </View>
+            <View style={styles.sheetTextarea}>
+              <TextInput
+                value={serviceDescription}
+                onChangeText={setServiceDescription}
+                placeholder="Descrição"
+                placeholderTextColor={colors.base.gray400}
+                style={styles.sheetTextInput}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
 
-                <TouchableOpacity activeOpacity={0.7}>
-                  <Pencil
+            <View style={styles.sheetRow}>
+              <View style={[styles.sheetInput, { flex: 1 }]}>
+                <TextInput
+                  value={`R$ ${servicePrice}`}
+                  onChangeText={handleChangePrice}
+                  placeholder="R$ 0,00"
+                  keyboardType="numeric"
+                  placeholderTextColor={colors.base.gray400}
+                  style={styles.sheetTextInput}
+                />
+              </View>
+
+              <View style={[styles.sheetInput, styles.sheetQtyContainer]}>
+                <TouchableOpacity
+                  onPress={handleDecreaseQty}
+                  activeOpacity={0.7}
+                  style={styles.qtyButton}
+                >
+                  <Minus
+                    size={16}
                     strokeWidth={2}
-                    size={18}
+                    color={colors.principal.purpleBase}
+                  />
+                </TouchableOpacity>
+
+                <Text style={styles.qtyValue}>{serviceQty}</Text>
+
+                <TouchableOpacity
+                  onPress={handleIncreaseQty}
+                  activeOpacity={0.7}
+                  style={styles.qtyButton}
+                >
+                  <Plus
+                    size={16}
+                    strokeWidth={2}
                     color={colors.principal.purpleBase}
                   />
                 </TouchableOpacity>
               </View>
-            ))}
+            </View>
           </View>
 
-          <View style={styles.servicesFooter}>
+          <View style={styles.sheetFooter}>
             <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.addServiceButton}
+              activeOpacity={0.8}
+              style={styles.sheetDeleteButton}
             >
-              <Plus
-                size={22}
+              <Trash2
+                size={18}
                 strokeWidth={2}
-                color={colors.principal.purpleBase}
+                color={colors.feedback.dangerBase}
               />
-              <Text style={styles.addServiceText}>Adicionar serviço</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.sheetSaveButton}
+            >
+              <Check size={18} strokeWidth={2} color={colors.white} />
+              <Text style={styles.sheetSaveText}>Salvar</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        <View style={styles.investmentContainer}>
-          <View style={styles.investmentHeader}>
-            <Wallet
-              strokeWidth={1.4}
-              size={18}
-              color={colors.principal.purpleBase}
-            />
-            <Text style={styles.investmentTitle}>Investimento</Text>
-          </View>
-
-          <View style={styles.divisor} />
-
-          <View style={styles.investmentBody}>
-            <View style={styles.investmentRow}>
-              <Text style={styles.investmentLabel}>Subtotal</Text>
-
-              <View style={styles.investmentRight}>
-                <Text style={styles.investmentItems}>
-                  {totalItems} {totalItems === 1 ? "item" : "itens"}
-                </Text>
-                <Text style={styles.investmentAmount}>
-                  {formatCurrency(subtotal)}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.investmentRow}>
-              <View style={styles.discountLeft}>
-                <Text style={styles.investmentLabel}>Desconto</Text>
-                <View style={styles.discountBadge}>
-                  <TextInput
-                    style={styles.discountInput}
-                    keyboardType="numeric"
-                    maxLength={3}
-                    value={discountPercent}
-                    onChangeText={handleChangeDiscount}
-                    placeholder="0"
-                    placeholderTextColor={colors.base.gray400}
-                  />
-                  <Text style={styles.discountPercent}>%</Text>
-                </View>
-              </View>
-
-              <Text style={styles.discountAmount}>
-                - {formatCurrency(discountValue)}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divisor} />
-
-          <View style={styles.investmentFooter}>
-            <Text style={styles.totalLabel}>Valor total</Text>
-
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.totalOld}>{formatCurrency(subtotal)}</Text>
-              <Text style={styles.totalAmount}>{formatCurrency(total)}</Text>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.footerButtonOutline}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.footerButtonOutlineText}>Cancelar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.footerButtonPrimary}
-          activeOpacity={0.8}
-        >
-          <Check size={18} strokeWidth={2} color={colors.white} />
-          <Text style={styles.footerButtonPrimaryText}>Salvar</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        </BottomSheetView>
+      </BottomSheet>
+    </GestureHandlerRootView>
   );
 }
 
@@ -378,7 +551,7 @@ const styles = StyleSheet.create({
     maxWidth: 150,
     paddingHorizontal: 16,
     marginTop: Platform.OS === "android" ? 40 : 68,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   title: {
     fontFamily: fontFamily.bold,
@@ -757,6 +930,111 @@ const styles = StyleSheet.create({
   footerButtonPrimaryText: {
     fontFamily: fontFamily.bold,
     fontSize: 14,
+    color: colors.white,
+  },
+  sheetContainer: {
+    flex: 1,
+    paddingBottom: 16,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  sheetTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    color: colors.base.gray700,
+  },
+  sheetDivisor: {
+    height: 1,
+    backgroundColor: colors.base.gray300,
+  },
+  sheetContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  sheetInput: {
+    borderRadius: 99,
+    borderWidth: 1,
+    borderColor: colors.base.gray300,
+    backgroundColor: colors.base.gray100,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  sheetTextarea: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.base.gray300,
+    backgroundColor: colors.base.gray100,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  sheetTextInput: {
+    fontFamily: fontFamily.regular,
+    fontSize: 16,
+    color: colors.base.gray700,
+  },
+  sheetRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  sheetQtyContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minWidth: 120,
+  },
+  qtyButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qtyValue: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    color: colors.base.gray700,
+  },
+  sheetFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderColor: colors.base.gray300,
+  },
+  sheetDeleteButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: colors.base.gray300,
+    backgroundColor: colors.base.gray100,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetSaveButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 99,
+    backgroundColor: colors.principal.purpleBase,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  sheetSaveText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 16,
     color: colors.white,
   },
 });
