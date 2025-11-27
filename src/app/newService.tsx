@@ -3,6 +3,7 @@ import { colors } from "@/types/colors";
 import { fontFamily } from "@/types/fontFamily";
 import { router } from "expo-router";
 import {
+  Check,
   ChevronLeft,
   ClipboardList,
   Pencil,
@@ -54,7 +55,10 @@ export default function NewService() {
   );
   const discountValue = subtotal * (numericDiscount / 100);
   const total = subtotal - discountValue;
-  const totalItems = servicesIncluded.reduce((acc, service) => acc + service.qty, 0);
+  const totalItems = servicesIncluded.reduce(
+    (acc, service) => acc + service.qty,
+    0
+  );
 
   function handleChangeDiscount(value: string) {
     const onlyNumbers = value.replace(/\D/g, "");
@@ -89,7 +93,7 @@ export default function NewService() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         <View style={styles.infoGeneralContainer}>
           <View style={styles.infoGeneralHeader}>
@@ -306,9 +310,8 @@ export default function NewService() {
             </View>
 
             <View style={styles.investmentRow}>
-              <Text style={styles.investmentLabel}>Desconto</Text>
-
-              <View style={styles.discountRow}>
+              <View style={styles.discountLeft}>
+                <Text style={styles.investmentLabel}>Desconto</Text>
                 <View style={styles.discountBadge}>
                   <TextInput
                     style={styles.discountInput}
@@ -321,10 +324,11 @@ export default function NewService() {
                   />
                   <Text style={styles.discountPercent}>%</Text>
                 </View>
-                <Text style={styles.discountAmount}>
-                  - {formatCurrency(discountValue)}
-                </Text>
               </View>
+
+              <Text style={styles.discountAmount}>
+                - {formatCurrency(discountValue)}
+              </Text>
             </View>
           </View>
 
@@ -340,6 +344,23 @@ export default function NewService() {
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.footerButtonOutline}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.footerButtonOutlineText}>Cancelar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.footerButtonPrimary}
+          activeOpacity={0.8}
+        >
+          <Check size={18} strokeWidth={2} color={colors.white} />
+          <Text style={styles.footerButtonPrimaryText}>Salvar</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -354,6 +375,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    maxWidth: 150,
     paddingHorizontal: 16,
     marginTop: Platform.OS === "android" ? 40 : 68,
     marginBottom: 24,
@@ -625,10 +647,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.base.gray700,
   },
-  discountRow: {
+  discountLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 12,
   },
   discountBadge: {
     flexDirection: "row",
@@ -691,5 +713,48 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 18,
     color: colors.base.gray700,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.white,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    gap: 16,
+  },
+  footerButtonOutline: {
+    flex: 1,
+    height: 52,
+    borderRadius: 99,
+    borderWidth: 1,
+    borderColor: colors.base.gray300,
+    backgroundColor: colors.base.gray100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  footerButtonOutlineText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.principal.purpleBase,
+  },
+  footerButtonPrimary: {
+    flex: 1,
+    height: 52,
+    borderRadius: 99,
+    backgroundColor: colors.principal.purpleBase,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
+  footerButtonPrimaryText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.white,
   },
 });
