@@ -30,33 +30,24 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function NewService() {
   type StatusOption = "draft" | "sent" | "approved" | "rejected";
+  type Service = {
+    id: string;
+    title: string;
+    description: string;
+    amount: number;
+    qty: number;
+  };
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>("draft");
   const [discountPercent, setDiscountPercent] = useState("0");
-  const [serviceTitle, setServiceTitle] = useState("Design de interfaces");
-  const [serviceDescription, setServiceDescription] = useState(
-    "Criação de wireframes e protótipos de alta fidelidade"
-  );
-  const [servicePrice, setServicePrice] = useState("3847,50");
-  const [serviceQty, setServiceQty] = useState(2);
+  const [serviceTitle, setServiceTitle] = useState("");
+  const [serviceDescription, setServiceDescription] = useState("");
+  const [servicePrice, setServicePrice] = useState("");
+  const [serviceQty, setServiceQty] = useState(1);
+  const [isEditingService, setIsEditingService] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [servicesIncluded, setServicesIncluded] = useState<Service[]>([]);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["75%"], []);
-
-  const servicesIncluded = [
-    {
-      id: "1",
-      title: "Design de interfaces",
-      description: "Criação de wireframes e protóti...",
-      amount: 3847.5,
-      qty: 1,
-    },
-    {
-      id: "2",
-      title: "Implantação e suporte",
-      description: "Publicação nas lojas de aplicativ...",
-      amount: 3847.5,
-      qty: 1,
-    },
-  ];
 
   const numericDiscount = Math.min(
     100,
@@ -100,7 +91,7 @@ export default function NewService() {
   }
 
   function handleDecreaseQty() {
-    setServiceQty((prev) => Math.max(0, prev - 1));
+    setServiceQty((prev) => Math.max(1, prev - 1));
   }
 
   function handleIncreaseQty() {
@@ -121,6 +112,55 @@ export default function NewService() {
         maximumFractionDigits: 2,
       })
     );
+  }
+
+  function resetServiceFields() {
+    setServiceTitle("");
+    setServiceDescription("");
+    setServicePrice("");
+    setServiceQty(1);
+    setIsEditingService(false);
+    setEditingServiceId(null);
+  }
+
+  function populateServiceFields(service: (typeof servicesIncluded)[number]) {
+    setServiceTitle(service.title);
+    setServiceDescription(service.description);
+    setServicePrice(
+      service.amount.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    );
+    setServiceQty(service.qty);
+    setIsEditingService(true);
+    setEditingServiceId(service.id);
+  }
+
+  function parsePriceToNumber(value: string) {
+    const normalized = value.replace(/\./g, "").replace(",", ".");
+    const asNumber = parseFloat(normalized);
+    return Number.isNaN(asNumber) ? 0 : asNumber;
+  }
+
+  function handleSaveService() {
+    const amount = parsePriceToNumber(servicePrice);
+    const payload: Service = {
+      id: editingServiceId ?? String(Date.now()),
+      title: serviceTitle || "Serviço",
+      description: serviceDescription || "Descrição do serviço",
+      amount,
+      qty: serviceQty,
+    };
+
+    setServicesIncluded((prev) => {
+      if (isEditingService && editingServiceId) {
+        return prev.map((item) => (item.id === editingServiceId ? payload : item));
+      }
+      return [...prev, payload];
+    });
+
+    handleCloseBottomSheet();
   }
 
   const renderBackdrop = useCallback(
@@ -291,17 +331,18 @@ export default function NewService() {
           </View>
 
           <View style={styles.servicesContainer}>
-            <View style={styles.servicesHeader}>
-              <ClipboardList
-                strokeWidth={1.4}
-                size={18}
-                color={colors.principal.purpleBase}
+          <View style={styles.servicesHeader}>
+            <ClipboardList
+              strokeWidth={1.4}
+              size={18}
+              color={colors.principal.purpleBase}
               />
               <Text style={styles.servicesTitle}>Serviços inclusos</Text>
             </View>
 
-            <View style={styles.divisor} />
+          <View style={styles.divisor} />
 
+          {servicesIncluded.length > 0 ? (
             <View style={styles.servicesContent}>
               {servicesIncluded.map((service) => (
                 <View key={service.id} style={styles.serviceRow}>
@@ -319,7 +360,13 @@ export default function NewService() {
                     <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
                   </View>
 
-                  <TouchableOpacity activeOpacity={0.7}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      populateServiceFields(service);
+                      handleOpenBottomSheet();
+                    }}
+                  >
                     <Pencil
                       strokeWidth={1.5}
                       size={18}
@@ -329,12 +376,20 @@ export default function NewService() {
                 </View>
               ))}
             </View>
+          ) : (
+            <Text style={styles.emptyServicesText}>
+              Nenhum serviço adicionado ainda.
+            </Text>
+          )}
 
             <View style={styles.servicesFooter}>
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.addServiceButton}
-                onPress={handleOpenBottomSheet}
+                onPress={() => {
+                  resetServiceFields();
+                  handleOpenBottomSheet();
+                }}
               >
                 <Plus
                   size={22}
@@ -473,7 +528,7 @@ export default function NewService() {
             <View style={styles.sheetRow}>
               <View style={[styles.sheetInput, { flex: 1 }]}>
                 <TextInput
-                  value={`R$ ${servicePrice}`}
+                  value={servicePrice ? `R$ ${servicePrice}` : ""}
                   onChangeText={handleChangePrice}
                   placeholder="R$ 0,00"
                   keyboardType="numeric"
@@ -527,6 +582,7 @@ export default function NewService() {
             <TouchableOpacity
               activeOpacity={0.8}
               style={styles.sheetSaveButton}
+              onPress={handleSaveService}
             >
               <Check size={18} strokeWidth={2} color={colors.white} />
               <Text style={styles.sheetSaveText}>Salvar</Text>
@@ -770,6 +826,13 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 14,
     color: colors.principal.purpleBase,
+  },
+  emptyServicesText: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.base.gray500,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   investmentContainer: {
     marginHorizontal: 16,
