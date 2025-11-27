@@ -1,7 +1,10 @@
 import { Input } from "@/components/Input";
 import { colors } from "@/types/colors";
 import { fontFamily } from "@/types/fontFamily";
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import {
   Check,
@@ -158,11 +161,25 @@ export default function NewService() {
 
     setServicesIncluded((prev) => {
       if (isEditingService && editingServiceId) {
-        return prev.map((item) => (item.id === editingServiceId ? payload : item));
+        return prev.map((item) =>
+          item.id === editingServiceId ? payload : item
+        );
       }
       return [...prev, payload];
     });
 
+    handleCloseBottomSheet();
+  }
+
+  function handleDeleteService() {
+    if (!editingServiceId) {
+      handleCloseBottomSheet();
+      return;
+    }
+
+    setServicesIncluded((prev) =>
+      prev.filter((item) => item.id !== editingServiceId)
+    );
     handleCloseBottomSheet();
   }
 
@@ -334,56 +351,56 @@ export default function NewService() {
           </View>
 
           <View style={styles.servicesContainer}>
-          <View style={styles.servicesHeader}>
-            <ClipboardList
-              strokeWidth={1.4}
-              size={18}
-              color={colors.principal.purpleBase}
+            <View style={styles.servicesHeader}>
+              <ClipboardList
+                strokeWidth={1.4}
+                size={18}
+                color={colors.principal.purpleBase}
               />
               <Text style={styles.servicesTitle}>Serviços inclusos</Text>
             </View>
 
-          <View style={styles.divisor} />
+            <View style={styles.divisor} />
 
-          {servicesIncluded.length > 0 ? (
-            <View style={styles.servicesContent}>
-              {servicesIncluded.map((service) => (
-                <View key={service.id} style={styles.serviceRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.serviceTitle}>{service.title}</Text>
-                    <Text style={styles.serviceDescription}>
-                      {service.description}
-                    </Text>
+            {servicesIncluded.length > 0 ? (
+              <View style={styles.servicesContent}>
+                {servicesIncluded.map((service) => (
+                  <View key={service.id} style={styles.serviceRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.serviceTitle}>{service.title}</Text>
+                      <Text style={styles.serviceDescription}>
+                        {service.description}
+                      </Text>
+                    </View>
+
+                    <View style={styles.serviceRight}>
+                      <Text style={styles.serviceAmount}>
+                        {formatCurrency(service.amount)}
+                      </Text>
+                      <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
+                    </View>
+
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        populateServiceFields(service);
+                        handleOpenBottomSheet();
+                      }}
+                    >
+                      <Pencil
+                        strokeWidth={1.5}
+                        size={18}
+                        color={colors.principal.purpleBase}
+                      />
+                    </TouchableOpacity>
                   </View>
-
-                  <View style={styles.serviceRight}>
-                    <Text style={styles.serviceAmount}>
-                      {formatCurrency(service.amount)}
-                    </Text>
-                    <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
-                  </View>
-
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => {
-                      populateServiceFields(service);
-                      handleOpenBottomSheet();
-                    }}
-                  >
-                    <Pencil
-                      strokeWidth={1.5}
-                      size={18}
-                      color={colors.principal.purpleBase}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.emptyServicesText}>
-              Nenhum serviço adicionado ainda.
-            </Text>
-          )}
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.emptyServicesText}>
+                Nenhum serviço adicionado ainda.
+              </Text>
+            )}
 
             <View style={styles.servicesFooter}>
               <TouchableOpacity
@@ -489,7 +506,6 @@ export default function NewService() {
         snapPoints={snapPoints}
         enablePanDownToClose
         index={isServiceSheetOpen ? 0 : -1}
-        initialSnapIndex={-1}
         onChange={(idx) => {
           if (idx < 0) {
             setIsServiceSheetOpen(false);
@@ -581,6 +597,7 @@ export default function NewService() {
             <TouchableOpacity
               activeOpacity={0.8}
               style={styles.sheetDeleteButton}
+              onPress={handleDeleteService}
             >
               <Trash2
                 size={18}
@@ -594,7 +611,7 @@ export default function NewService() {
               style={styles.sheetSaveButton}
               onPress={handleSaveService}
             >
-              <Check size={18} strokeWidth={2} color={colors.white} />
+              <Check size={18} strokeWidth={1.5} color={colors.white} />
               <Text style={styles.sheetSaveText}>Salvar</Text>
             </TouchableOpacity>
           </View>
@@ -1080,6 +1097,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
+    justifyContent: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderTopWidth: 1,
@@ -1096,8 +1114,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sheetSaveButton: {
-    flex: 1,
     height: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 99,
     backgroundColor: colors.principal.purpleBase,
     flexDirection: "row",
