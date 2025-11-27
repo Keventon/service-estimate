@@ -44,6 +44,7 @@ export default function NewService() {
   const [servicePrice, setServicePrice] = useState("");
   const [serviceQty, setServiceQty] = useState(1);
   const [isEditingService, setIsEditingService] = useState(false);
+  const [isServiceSheetOpen, setIsServiceSheetOpen] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [servicesIncluded, setServicesIncluded] = useState<Service[]>([]);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -83,10 +84,12 @@ export default function NewService() {
   }
 
   function handleOpenBottomSheet() {
+    setIsServiceSheetOpen(true);
     bottomSheetRef.current?.snapToIndex(0);
   }
 
   function handleCloseBottomSheet() {
+    setIsServiceSheetOpen(false);
     bottomSheetRef.current?.close();
   }
 
@@ -485,7 +488,14 @@ export default function NewService() {
         ref={bottomSheetRef}
         snapPoints={snapPoints}
         enablePanDownToClose
-        index={-1}
+        index={isServiceSheetOpen ? 0 : -1}
+        initialSnapIndex={-1}
+        onChange={(idx) => {
+          if (idx < 0) {
+            setIsServiceSheetOpen(false);
+            resetServiceFields();
+          }
+        }}
         backdropComponent={renderBackdrop}
       >
         <BottomSheetView style={styles.sheetContainer}>
