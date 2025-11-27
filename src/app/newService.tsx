@@ -2,7 +2,14 @@ import { Input } from "@/components/Input";
 import { colors } from "@/types/colors";
 import { fontFamily } from "@/types/fontFamily";
 import { router } from "expo-router";
-import { ChevronLeft, Store, Tag } from "lucide-react-native";
+import {
+  ChevronLeft,
+  ClipboardList,
+  Pencil,
+  Plus,
+  Store,
+  Tag,
+} from "lucide-react-native";
 import { useState } from "react";
 import {
   Platform,
@@ -15,6 +22,23 @@ import {
 export default function NewService() {
   type StatusOption = "draft" | "sent" | "approved" | "rejected";
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>("draft");
+
+  const servicesIncluded = [
+    {
+      id: "1",
+      title: "Design de interfaces",
+      description: "Criação de wireframes e protóti...",
+      amount: "R$ 3.847,50",
+      qty: 1,
+    },
+    {
+      id: "2",
+      title: "Implantação e suporte",
+      description: "Publicação nas lojas de aplicativ...",
+      amount: "R$ 3.847,50",
+      qty: 1,
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -159,6 +183,56 @@ export default function NewService() {
           </View>
         </View>
       </View>
+
+      <View style={styles.servicesContainer}>
+        <View style={styles.servicesHeader}>
+          <ClipboardList
+            strokeWidth={1.4}
+            size={18}
+            color={colors.principal.purpleBase}
+          />
+          <Text style={styles.servicesTitle}>Serviços inclusos</Text>
+        </View>
+
+        <View style={styles.divisor} />
+
+        <View style={styles.servicesContent}>
+          {servicesIncluded.map((service) => (
+            <View key={service.id} style={styles.serviceRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.serviceTitle}>{service.title}</Text>
+                <Text style={styles.serviceDescription}>
+                  {service.description}
+                </Text>
+              </View>
+
+              <View style={styles.serviceRight}>
+                <Text style={styles.serviceAmount}>{service.amount}</Text>
+                <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
+              </View>
+
+              <TouchableOpacity activeOpacity={0.7}>
+                <Pencil
+                  strokeWidth={2}
+                  size={18}
+                  color={colors.principal.purpleBase}
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.servicesFooter}>
+          <TouchableOpacity activeOpacity={0.7} style={styles.addServiceButton}>
+            <Plus
+              size={22}
+              strokeWidth={2}
+              color={colors.principal.purpleBase}
+            />
+            <Text style={styles.addServiceText}>Adicionar serviço</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -190,7 +264,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     backgroundColor: colors.white,
     borderColor: colors.base.gray300,
-    borderRadius: 16,
+    borderRadius: 10,
     borderWidth: 1,
     marginTop: 24,
   },
@@ -203,7 +277,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   formContent: {
     padding: 20,
@@ -216,18 +291,18 @@ const styles = StyleSheet.create({
     borderColor: colors.base.gray300,
     borderRadius: 10,
     borderWidth: 1,
-    overflow: "hidden",
   },
   statusHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   statusTitle: {
     fontFamily: fontFamily.regular,
     fontSize: 12,
-    color: colors.base.gray600,
+    color: colors.base.gray500,
   },
   statusContent: {
     paddingHorizontal: 20,
@@ -317,5 +392,81 @@ const styles = StyleSheet.create({
   },
   rejectedText: {
     color: colors.feedback.dangerDark,
+  },
+  servicesContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: colors.white,
+    borderColor: colors.base.gray300,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  servicesHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  servicesTitle: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.base.gray500,
+  },
+  servicesContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  serviceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  serviceTitle: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.base.gray700,
+  },
+  serviceDescription: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.base.gray500,
+    marginTop: 2,
+  },
+  serviceRight: {
+    alignItems: "flex-end",
+    marginRight: 4,
+  },
+  serviceAmount: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.base.gray700,
+  },
+  serviceQty: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.base.gray500,
+    marginTop: 2,
+  },
+  servicesFooter: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  addServiceButton: {
+    height: 48,
+    borderRadius: 99,
+    borderWidth: 1,
+    borderColor: colors.base.gray300,
+    backgroundColor: colors.base.gray100,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  addServiceText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.principal.purpleBase,
   },
 });
