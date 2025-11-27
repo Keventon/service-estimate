@@ -26,7 +26,7 @@ import {
 export default function NewService() {
   type StatusOption = "draft" | "sent" | "approved" | "rejected";
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>("draft");
-  const [discountPercent, setDiscountPercent] = useState("8");
+  const [discountPercent, setDiscountPercent] = useState("0");
 
   const servicesIncluded = [
     {
@@ -721,17 +721,18 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: colors.white,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 32,
     paddingVertical: 16,
     gap: 16,
   },
   footerButtonOutline: {
-    flex: 1,
     height: 52,
     borderRadius: 99,
     borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderColor: colors.base.gray300,
     backgroundColor: colors.base.gray100,
     justifyContent: "center",
@@ -743,9 +744,10 @@ const styles = StyleSheet.create({
     color: colors.principal.purpleBase,
   },
   footerButtonPrimary: {
-    flex: 1,
     height: 52,
     borderRadius: 99,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: colors.principal.purpleBase,
     justifyContent: "center",
     alignItems: "center",
