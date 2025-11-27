@@ -6,58 +6,23 @@ import {
 } from "@/components/FilterBottomSheet";
 import { SearchInput } from "@/components/SearchInput";
 import { Service } from "@/components/Service";
+import { services } from "@/mocks";
 import { colors } from "@/types/colors";
 import { fontFamily } from "@/types/fontFamily";
 import BottomSheet from "@gorhom/bottom-sheet";
+import { router } from "expo-router";
 import { SlidersHorizontal } from "lucide-react-native";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   FlatList,
+  Platform,
   StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
-const services = [
-  {
-    id: "1",
-    title: "Desenvolvimento de aplicativo de loja online",
-    client: "Soluções Tecnológicas Beta",
-    amount: "R$ 22.300,00",
-    statusLabel: "Aprovado",
-    statusBackgroundColor: colors.feedback.successLight,
-    statusDotColor: colors.feedback.successBase,
-  },
-  {
-    id: "2",
-    title: "Consultoria em marketing digital",
-    client: "Marketing Wizards",
-    amount: "R$ 4.000,00",
-    statusLabel: "Rascunho",
-    statusBackgroundColor: colors.base.gray300,
-    statusDotColor: colors.base.gray400,
-  },
-  {
-    id: "3",
-    title: "Serviços de SEO",
-    client: "SEO Masters",
-    amount: "R$ 3.500,00",
-    statusLabel: "Enviado",
-    statusBackgroundColor: colors.feedback.infoLight,
-    statusDotColor: colors.feedback.infoBase,
-  },
-  {
-    id: "4",
-    title: "Criação de conteúdo",
-    client: "Content Creators",
-    amount: "R$ 2.500,00",
-    statusLabel: "Rascunho",
-    statusBackgroundColor: colors.base.gray300,
-    statusDotColor: colors.base.gray400,
-  },
-];
 
 export default function Index() {
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -98,26 +63,10 @@ export default function Index() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: colors.white,
-        }}
-      >
+      <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
-        <View
-          style={{
-            padding: 24,
-            marginTop: 24,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
+        <View style={styles.content}>
+          <View style={styles.header}>
             <View>
               <Text
                 style={{
@@ -140,47 +89,22 @@ export default function Index() {
                 Você tem 1 item em rascunho
               </Text>
             </View>
-            <Button />
+            <Button
+              title="Novo"
+              onPress={() => router.navigate("/newService")}
+            />
           </View>
         </View>
 
-        <View
-          style={{
-            width: "100%",
-            height: 1,
-            backgroundColor: colors.base.gray300,
-          }}
-        />
+        <View style={styles.divisor} />
 
-        <View
-          style={{
-            marginTop: 24,
-            marginBottom: 24,
-            marginHorizontal: 24,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              marginRight: 12,
-            }}
-          >
+        <View style={styles.inputContainer}>
+          <View style={styles.input}>
             <SearchInput placeholder="Título ou cliente" />
           </View>
 
           <TouchableOpacity
-            style={{
-              backgroundColor: colors.base.gray100,
-              width: 48,
-              height: 48,
-              borderWidth: 1,
-              borderColor: colors.base.gray200,
-              borderRadius: 999,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            style={styles.buttonFilter}
             activeOpacity={0.7}
             onPress={handleOpenFilters}
           >
@@ -227,3 +151,45 @@ export default function Index() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  content: {
+    padding: 24,
+    marginTop: Platform.OS === "android" ? 24 : 40,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  divisor: {
+    width: "100%",
+    height: 1,
+    backgroundColor: colors.base.gray300,
+  },
+  inputContainer: {
+    marginTop: 24,
+    marginBottom: 24,
+    marginHorizontal: 24,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    marginRight: 12,
+  },
+  buttonFilter: {
+    backgroundColor: colors.base.gray100,
+    width: 48,
+    height: 48,
+    borderWidth: 1,
+    borderColor: colors.base.gray200,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
