@@ -9,12 +9,15 @@ import {
   Plus,
   Store,
   Tag,
+  Wallet,
 } from "lucide-react-native";
 import { useState } from "react";
 import {
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -22,23 +25,54 @@ import {
 export default function NewService() {
   type StatusOption = "draft" | "sent" | "approved" | "rejected";
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>("draft");
+  const [discountPercent, setDiscountPercent] = useState("8");
 
   const servicesIncluded = [
     {
       id: "1",
       title: "Design de interfaces",
       description: "Criação de wireframes e protóti...",
-      amount: "R$ 3.847,50",
+      amount: 3847.5,
       qty: 1,
     },
     {
       id: "2",
       title: "Implantação e suporte",
       description: "Publicação nas lojas de aplicativ...",
-      amount: "R$ 3.847,50",
+      amount: 3847.5,
       qty: 1,
     },
   ];
+
+  const numericDiscount = Math.min(
+    100,
+    Math.max(0, Number(discountPercent) || 0)
+  );
+  const subtotal = servicesIncluded.reduce(
+    (acc, service) => acc + service.amount * service.qty,
+    0
+  );
+  const discountValue = subtotal * (numericDiscount / 100);
+  const total = subtotal - discountValue;
+  const totalItems = servicesIncluded.reduce((acc, service) => acc + service.qty, 0);
+
+  function handleChangeDiscount(value: string) {
+    const onlyNumbers = value.replace(/\D/g, "");
+    if (onlyNumbers === "") {
+      setDiscountPercent("");
+      return;
+    }
+
+    const clamped = Math.min(100, Number(onlyNumbers));
+    setDiscountPercent(String(clamped));
+  }
+
+  function formatCurrency(value: number) {
+    return value.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
 
   return (
     <View style={styles.container}>
@@ -53,186 +87,259 @@ export default function NewService() {
 
       <View style={styles.divisor} />
 
-      <View style={styles.infoGeneralContainer}>
-        <View style={styles.infoGeneralHeader}>
-          <Store
-            strokeWidth={1.3}
-            size={18}
-            color={colors.principal.purpleBase}
-          />
-          <Text style={styles.titleInfoGeneral}>Informações Gerais</Text>
-        </View>
-
-        <View style={styles.divisor} />
-
-        <View style={styles.formContent}>
-          <Input placeholder="Título" />
-          <Input placeholder="Cliente" />
-        </View>
-      </View>
-
-      <View style={styles.statusContainer}>
-        <View style={styles.statusHeader}>
-          <Tag
-            strokeWidth={1.4}
-            size={18}
-            color={colors.principal.purpleBase}
-          />
-          <Text style={styles.statusTitle}>Status</Text>
-        </View>
-
-        <View style={styles.divisor} />
-
-        <View style={styles.statusContent}>
-          <View style={styles.statusRow}>
-            <TouchableOpacity
-              style={styles.statusItem}
-              activeOpacity={0.7}
-              onPress={() => setSelectedStatus("draft")}
-            >
-              <View
-                style={[
-                  styles.radio,
-                  selectedStatus === "draft" && styles.radioSelected,
-                ]}
-              >
-                {selectedStatus === "draft" && (
-                  <View style={styles.radioInner} />
-                )}
-              </View>
-
-              <View style={[styles.statusBadge, styles.draftBadge]}>
-                <View style={[styles.badgeDot, styles.draftDot]} />
-                <Text style={[styles.badgeText, styles.draftText]}>
-                  Rascunho
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.statusItem}
-              activeOpacity={0.7}
-              onPress={() => setSelectedStatus("approved")}
-            >
-              <View
-                style={[
-                  styles.radio,
-                  selectedStatus === "approved" && styles.radioSelected,
-                ]}
-              >
-                {selectedStatus === "approved" && (
-                  <View style={styles.radioInner} />
-                )}
-              </View>
-
-              <View style={[styles.statusBadge, styles.approvedBadge]}>
-                <View style={[styles.badgeDot, styles.approvedDot]} />
-                <Text style={[styles.badgeText, styles.approvedText]}>
-                  Aprovado
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.statusRow}>
-            <TouchableOpacity
-              style={styles.statusItem}
-              activeOpacity={0.7}
-              onPress={() => setSelectedStatus("sent")}
-            >
-              <View
-                style={[
-                  styles.radio,
-                  selectedStatus === "sent" && styles.radioSelected,
-                ]}
-              >
-                {selectedStatus === "sent" && (
-                  <View style={styles.radioInner} />
-                )}
-              </View>
-
-              <View style={[styles.statusBadge, styles.sentBadge]}>
-                <View style={[styles.badgeDot, styles.sentDot]} />
-                <Text style={[styles.badgeText, styles.sentText]}>Enviado</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.statusItem}
-              activeOpacity={0.7}
-              onPress={() => setSelectedStatus("rejected")}
-            >
-              <View
-                style={[
-                  styles.radio,
-                  selectedStatus === "rejected" && styles.radioSelected,
-                ]}
-              >
-                {selectedStatus === "rejected" && (
-                  <View style={styles.radioInner} />
-                )}
-              </View>
-
-              <View style={[styles.statusBadge, styles.rejectedBadge]}>
-                <View style={[styles.badgeDot, styles.rejectedDot]} />
-                <Text style={[styles.badgeText, styles.rejectedText]}>
-                  Recusado
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.servicesContainer}>
-        <View style={styles.servicesHeader}>
-          <ClipboardList
-            strokeWidth={1.4}
-            size={18}
-            color={colors.principal.purpleBase}
-          />
-          <Text style={styles.servicesTitle}>Serviços inclusos</Text>
-        </View>
-
-        <View style={styles.divisor} />
-
-        <View style={styles.servicesContent}>
-          {servicesIncluded.map((service) => (
-            <View key={service.id} style={styles.serviceRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.serviceTitle}>{service.title}</Text>
-                <Text style={styles.serviceDescription}>
-                  {service.description}
-                </Text>
-              </View>
-
-              <View style={styles.serviceRight}>
-                <Text style={styles.serviceAmount}>{service.amount}</Text>
-                <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
-              </View>
-
-              <TouchableOpacity activeOpacity={0.7}>
-                <Pencil
-                  strokeWidth={2}
-                  size={18}
-                  color={colors.principal.purpleBase}
-                />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.servicesFooter}>
-          <TouchableOpacity activeOpacity={0.7} style={styles.addServiceButton}>
-            <Plus
-              size={22}
-              strokeWidth={2}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
+        <View style={styles.infoGeneralContainer}>
+          <View style={styles.infoGeneralHeader}>
+            <Store
+              strokeWidth={1.3}
+              size={18}
               color={colors.principal.purpleBase}
             />
-            <Text style={styles.addServiceText}>Adicionar serviço</Text>
-          </TouchableOpacity>
+            <Text style={styles.titleInfoGeneral}>Informações Gerais</Text>
+          </View>
+
+          <View style={styles.divisor} />
+
+          <View style={styles.formContent}>
+            <Input placeholder="Título" />
+            <Input placeholder="Cliente" />
+          </View>
         </View>
-      </View>
+
+        <View style={styles.statusContainer}>
+          <View style={styles.statusHeader}>
+            <Tag
+              strokeWidth={1.4}
+              size={18}
+              color={colors.principal.purpleBase}
+            />
+            <Text style={styles.statusTitle}>Status</Text>
+          </View>
+
+          <View style={styles.divisor} />
+
+          <View style={styles.statusContent}>
+            <View style={styles.statusRow}>
+              <TouchableOpacity
+                style={styles.statusItem}
+                activeOpacity={0.7}
+                onPress={() => setSelectedStatus("draft")}
+              >
+                <View
+                  style={[
+                    styles.radio,
+                    selectedStatus === "draft" && styles.radioSelected,
+                  ]}
+                >
+                  {selectedStatus === "draft" && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+
+                <View style={[styles.statusBadge, styles.draftBadge]}>
+                  <View style={[styles.badgeDot, styles.draftDot]} />
+                  <Text style={[styles.badgeText, styles.draftText]}>
+                    Rascunho
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.statusItem}
+                activeOpacity={0.7}
+                onPress={() => setSelectedStatus("approved")}
+              >
+                <View
+                  style={[
+                    styles.radio,
+                    selectedStatus === "approved" && styles.radioSelected,
+                  ]}
+                >
+                  {selectedStatus === "approved" && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+
+                <View style={[styles.statusBadge, styles.approvedBadge]}>
+                  <View style={[styles.badgeDot, styles.approvedDot]} />
+                  <Text style={[styles.badgeText, styles.approvedText]}>
+                    Aprovado
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.statusRow}>
+              <TouchableOpacity
+                style={styles.statusItem}
+                activeOpacity={0.7}
+                onPress={() => setSelectedStatus("sent")}
+              >
+                <View
+                  style={[
+                    styles.radio,
+                    selectedStatus === "sent" && styles.radioSelected,
+                  ]}
+                >
+                  {selectedStatus === "sent" && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+
+                <View style={[styles.statusBadge, styles.sentBadge]}>
+                  <View style={[styles.badgeDot, styles.sentDot]} />
+                  <Text style={[styles.badgeText, styles.sentText]}>
+                    Enviado
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.statusItem}
+                activeOpacity={0.7}
+                onPress={() => setSelectedStatus("rejected")}
+              >
+                <View
+                  style={[
+                    styles.radio,
+                    selectedStatus === "rejected" && styles.radioSelected,
+                  ]}
+                >
+                  {selectedStatus === "rejected" && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
+
+                <View style={[styles.statusBadge, styles.rejectedBadge]}>
+                  <View style={[styles.badgeDot, styles.rejectedDot]} />
+                  <Text style={[styles.badgeText, styles.rejectedText]}>
+                    Recusado
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.servicesContainer}>
+          <View style={styles.servicesHeader}>
+            <ClipboardList
+              strokeWidth={1.4}
+              size={18}
+              color={colors.principal.purpleBase}
+            />
+            <Text style={styles.servicesTitle}>Serviços inclusos</Text>
+          </View>
+
+          <View style={styles.divisor} />
+
+          <View style={styles.servicesContent}>
+            {servicesIncluded.map((service) => (
+              <View key={service.id} style={styles.serviceRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.serviceTitle}>{service.title}</Text>
+                  <Text style={styles.serviceDescription}>
+                    {service.description}
+                  </Text>
+                </View>
+
+                <View style={styles.serviceRight}>
+                  <Text style={styles.serviceAmount}>
+                    {formatCurrency(service.amount)}
+                  </Text>
+                  <Text style={styles.serviceQty}>Qt: {service.qty}</Text>
+                </View>
+
+                <TouchableOpacity activeOpacity={0.7}>
+                  <Pencil
+                    strokeWidth={2}
+                    size={18}
+                    color={colors.principal.purpleBase}
+                  />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.servicesFooter}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.addServiceButton}
+            >
+              <Plus
+                size={22}
+                strokeWidth={2}
+                color={colors.principal.purpleBase}
+              />
+              <Text style={styles.addServiceText}>Adicionar serviço</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.investmentContainer}>
+          <View style={styles.investmentHeader}>
+            <Wallet
+              strokeWidth={1.4}
+              size={18}
+              color={colors.principal.purpleBase}
+            />
+            <Text style={styles.investmentTitle}>Investimento</Text>
+          </View>
+
+          <View style={styles.divisor} />
+
+          <View style={styles.investmentBody}>
+            <View style={styles.investmentRow}>
+              <Text style={styles.investmentLabel}>Subtotal</Text>
+
+              <View style={styles.investmentRight}>
+                <Text style={styles.investmentItems}>
+                  {totalItems} {totalItems === 1 ? "item" : "itens"}
+                </Text>
+                <Text style={styles.investmentAmount}>
+                  {formatCurrency(subtotal)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.investmentRow}>
+              <Text style={styles.investmentLabel}>Desconto</Text>
+
+              <View style={styles.discountRow}>
+                <View style={styles.discountBadge}>
+                  <TextInput
+                    style={styles.discountInput}
+                    keyboardType="numeric"
+                    maxLength={3}
+                    value={discountPercent}
+                    onChangeText={handleChangeDiscount}
+                    placeholder="0"
+                    placeholderTextColor={colors.base.gray400}
+                  />
+                  <Text style={styles.discountPercent}>%</Text>
+                </View>
+                <Text style={styles.discountAmount}>
+                  - {formatCurrency(discountValue)}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.divisor} />
+
+          <View style={styles.investmentFooter}>
+            <Text style={styles.totalLabel}>Valor total</Text>
+
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={styles.totalOld}>{formatCurrency(subtotal)}</Text>
+              <Text style={styles.totalAmount}>{formatCurrency(total)}</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -468,5 +575,121 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 14,
     color: colors.principal.purpleBase,
+  },
+  investmentContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: colors.white,
+    borderColor: colors.base.gray300,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  investmentHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  investmentTitle: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.base.gray500,
+  },
+  investmentBody: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  investmentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  investmentLabel: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.base.gray700,
+  },
+  investmentRight: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  investmentItems: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.base.gray500,
+  },
+  investmentAmount: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.base.gray700,
+  },
+  discountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  discountBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    minWidth: 80,
+    height: 36,
+    backgroundColor: colors.base.gray100,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.base.gray300,
+  },
+  discountText: {
+    fontFamily: fontFamily.bold,
+    fontSize: 18,
+    color: colors.base.gray700,
+  },
+  discountInput: {
+    fontFamily: fontFamily.bold,
+    fontSize: 18,
+    color: colors.base.gray700,
+    minWidth: 24,
+    textAlign: "center",
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  discountPercent: {
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: colors.base.gray600,
+  },
+  discountAmount: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.feedback.dangerBase,
+  },
+  investmentFooter: {
+    backgroundColor: colors.base.gray100,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  totalLabel: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.base.gray700,
+  },
+  totalOld: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: colors.base.gray500,
+    textDecorationLine: "line-through",
+  },
+  totalAmount: {
+    fontFamily: fontFamily.bold,
+    fontSize: 18,
+    color: colors.base.gray700,
   },
 });
