@@ -1,6 +1,8 @@
 import { Input } from "@/components/Input";
 import { colors } from "@/styles/colors";
 import { fontFamily } from "@/styles/fontFamily";
+import { upsertService } from "@/service/storage";
+import { ServiceDetail } from "@/types/service";
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
@@ -42,6 +44,8 @@ export default function NewService() {
   };
   const [selectedStatus, setSelectedStatus] = useState<StatusOption>("draft");
   const [discountPercent, setDiscountPercent] = useState("0");
+  const [estimateTitle, setEstimateTitle] = useState("");
+  const [clientName, setClientName] = useState("");
   const [serviceTitle, setServiceTitle] = useState("");
   const [serviceDescription, setServiceDescription] = useState("");
   const [servicePrice, setServicePrice] = useState("");
@@ -183,6 +187,29 @@ export default function NewService() {
     handleCloseBottomSheet();
   }
 
+  async function handleSaveBudget() {
+    const now = new Date().toISOString();
+    const normalizedId = `#${Date.now().toString().slice(-5)}`;
+    const numericDiscount = Number(discountPercent) || 0;
+
+    const budget: ServiceDetail = {
+      id: normalizedId,
+      title: estimateTitle || "Orçamento",
+      status: selectedStatus,
+      client: clientName || "Cliente",
+      createdAt: now,
+      updatedAt: now,
+      services: servicesIncluded,
+      subtotal,
+      discountPercent: numericDiscount,
+      discountAmount: discountValue,
+      total,
+    };
+
+    await upsertService(budget);
+    router.back();
+  }
+
   const renderBackdrop = useCallback(
     (backdropProps: any) => (
       <BottomSheetBackdrop
@@ -218,22 +245,30 @@ export default function NewService() {
           contentContainerStyle={{ paddingBottom: 120 }}
         >
           <View style={styles.infoGeneralContainer}>
-            <View style={styles.infoGeneralHeader}>
-              <Store
-                strokeWidth={1.3}
-                size={18}
-                color={colors.principal.purpleBase}
-              />
-              <Text style={styles.titleInfoGeneral}>Informações Gerais</Text>
-            </View>
-
-            <View style={styles.divisor} />
-
-            <View style={styles.formContent}>
-              <Input placeholder="Título" />
-              <Input placeholder="Cliente" />
-            </View>
+          <View style={styles.infoGeneralHeader}>
+            <Store
+              strokeWidth={1.3}
+              size={18}
+              color={colors.principal.purpleBase}
+            />
+            <Text style={styles.titleInfoGeneral}>Informações Gerais</Text>
           </View>
+
+          <View style={styles.divisor} />
+
+          <View style={styles.formContent}>
+            <Input
+              placeholder="Título"
+              value={estimateTitle}
+              onChangeText={setEstimateTitle}
+            />
+            <Input
+              placeholder="Cliente"
+              value={clientName}
+              onChangeText={setClientName}
+            />
+          </View>
+        </View>
 
           <View style={styles.statusContainer}>
             <View style={styles.statusHeader}>
@@ -491,14 +526,15 @@ export default function NewService() {
             <Text style={styles.footerButtonOutlineText}>Cancelar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.footerButtonPrimary}
-            activeOpacity={0.8}
-          >
-            <Check size={18} strokeWidth={2} color={colors.white} />
-            <Text style={styles.footerButtonPrimaryText}>Salvar</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.footerButtonPrimary}
+          activeOpacity={0.8}
+          onPress={handleSaveBudget}
+        >
+          <Check size={18} strokeWidth={2} color={colors.white} />
+          <Text style={styles.footerButtonPrimaryText}>Salvar</Text>
+        </TouchableOpacity>
+      </View>
       </View>
 
       <BottomSheet

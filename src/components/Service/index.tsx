@@ -1,4 +1,5 @@
 import { colors } from "@/styles/colors";
+import { router } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 
@@ -9,9 +10,11 @@ export type ServiceProps = {
   statusLabel: string;
   statusBackgroundColor?: string;
   statusDotColor?: string;
+  id: string;
 };
 
 export function Service({
+  id,
   title,
   client,
   amount,
@@ -20,7 +23,16 @@ export function Service({
   statusDotColor = colors.feedback.successBase,
 }: ServiceProps) {
   return (
-    <TouchableOpacity activeOpacity={0.3} style={styles.container}>
+    <TouchableOpacity
+      activeOpacity={0.3}
+      style={styles.container}
+      onPress={() =>
+        router.push({
+          pathname: "/[id]",
+          params: { id: id.replace("#", "") },
+        })
+      }
+    >
       <View style={styles.headerRow}>
         <Text style={styles.title}>{title}</Text>
 

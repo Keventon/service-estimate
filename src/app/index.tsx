@@ -6,9 +6,11 @@ import {
 } from "@/components/FilterBottomSheet";
 import { SearchInput } from "@/components/SearchInput";
 import { Service } from "@/components/Service";
+import { getServices } from "@/service/storage";
 import { colors } from "@/styles/colors";
 import { fontFamily } from "@/styles/fontFamily";
 import BottomSheet from "@gorhom/bottom-sheet";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { SlidersHorizontal } from "lucide-react-native";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -27,7 +29,7 @@ export default function Index() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<StatusFilter[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>("recent");
-  const [servicesData] = useState<
+  const [servicesData, setServicesData] = useState<
     Array<{
       id: string;
       title: string;
@@ -70,6 +72,59 @@ export default function Index() {
     // Conecte aqui a aplicação dos filtros na lista, se necessário
     bottomSheetRef.current?.close();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function load() {
+        const data = await getServices();
+        if (!isActive) return;
+        const mapped = data.map((item) => ({
+          id: item.id,
+          title: item.title,
+          client: item.client,
+          amount: item.total
+            ? item.total.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })
+            : "",
+          statusLabel:
+            item.status === "approved"
+              ? "Aprovado"
+              : item.status === "sent"
+              ? "Enviado"
+              : item.status === "rejected"
+              ? "Recusado"
+              : "Rascunho",
+          statusBackgroundColor:
+            item.status === "approved"
+              ? colors.feedback.successLight
+              : item.status === "sent"
+              ? colors.feedback.infoLight
+              : item.status === "rejected"
+              ? colors.feedback.dangerLight
+              : colors.base.gray300,
+          statusDotColor:
+            item.status === "approved"
+              ? colors.feedback.successBase
+              : item.status === "sent"
+              ? colors.feedback.infoBase
+              : item.status === "rejected"
+              ? colors.feedback.dangerBase
+              : colors.base.gray400,
+        }));
+        setServicesData(mapped);
+      }
+
+      load();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -129,19 +184,15 @@ export default function Index() {
           data={servicesData}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.push(`/${item.id}`)}
-            >
-              <Service
-                title={item.title}
-                client={item.client}
-                amount={item.amount}
-                statusLabel={item.statusLabel}
-                statusBackgroundColor={item.statusBackgroundColor}
-                statusDotColor={item.statusDotColor}
-              />
-            </TouchableOpacity>
+            <Service
+              id={item.id}
+              title={item.title}
+              client={item.client}
+              amount={item.amount}
+              statusLabel={item.statusLabel}
+              statusBackgroundColor={item.statusBackgroundColor}
+              statusDotColor={item.statusDotColor}
+            />
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{

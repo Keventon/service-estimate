@@ -1,16 +1,20 @@
+import { getServiceById } from "@/service/storage";
 import { colors } from "@/styles/colors";
 import { fontFamily } from "@/styles/fontFamily";
 import { ServiceDetail, ServiceStatus } from "@/types/service";
+import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ChevronLeft,
+  ClipboardList,
   Copy,
   Pencil,
   Send,
   Store,
   Trash2,
+  Wallet,
 } from "lucide-react-native";
-import { useMemo } from "react";
+import { useCallback, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -69,13 +73,24 @@ export default function ServiceDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const paramId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const [data, setData] = useState<ServiceDetail | null>(null);
 
-  const data = useMemo(() => {
-    if (!paramId) return null;
-    const normalized = paramId.startsWith("#") ? paramId : `#${paramId}`;
-    // TODO: fetch service detail by id once persistence is configured
-    return null as ServiceDetail | null;
-  }, [paramId]);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      async function load() {
+        if (!paramId) return;
+        const normalized = paramId.startsWith("#") ? paramId : `#${paramId}`;
+        const response = await getServiceById(normalized);
+        if (!isActive) return;
+        setData(response);
+      }
+      load();
+      return () => {
+        isActive = false;
+      };
+    }, [paramId])
+  );
 
   if (!data) {
     return (
@@ -105,11 +120,15 @@ export default function ServiceDetailScreen() {
             strokeWidth={1.5}
             color={colors.base.gray700}
           />
+          <Text style={styles.headerTitle}>Orçamento {data.id}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Orçamento {data.id}</Text>
-
-        <View style={styles.statusBadge}>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: statusData.background },
+          ]}
+        >
           <View
             style={[styles.statusDot, { backgroundColor: statusData.dot }]}
           />
@@ -160,7 +179,7 @@ export default function ServiceDetailScreen() {
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Store
+            <ClipboardList
               size={18}
               strokeWidth={1.4}
               color={colors.principal.purpleBase}
@@ -192,32 +211,33 @@ export default function ServiceDetailScreen() {
         </View>
 
         <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Store
-              size={18}
-              strokeWidth={1.4}
-              color={colors.principal.purpleBase}
-            />
-            <Text style={styles.cardHeaderTitle}>Resumo</Text>
-          </View>
-
-          <View style={styles.divisor} />
-
           <View style={styles.resumeContent}>
             <View style={styles.resumeRow}>
-              <View>
-                <Text style={styles.resumeLabel}>Subtotal</Text>
-                <Text style={styles.resumeLabel}>Desconto</Text>
+              <View style={styles.resumeLabelWithIcon}>
+                <View style={styles.summaryIcon}>
+                  <Wallet
+                    size={18}
+                    strokeWidth={1.4}
+                    color={colors.principal.purpleBase}
+                  />
+                </View>
+                <View>
+                  <Text style={styles.resumeLabel}>Subtotal</Text>
+                  <View style={styles.discountInline}>
+                    <Text style={styles.resumeLabel}>Desconto</Text>
+                    <View style={styles.discountChip}>
+                      <Text style={styles.discountChipText}>
+                        {data.discountPercent}% off
+                      </Text>
+                    </View>
+                  </View>
+                </View>
               </View>
-              <View style={{ alignItems: "flex-end" }}>
+
+              <View style={{ alignItems: "flex-end", gap: 6 }}>
                 <Text style={styles.resumeStriked}>
                   {formatCurrency(data.subtotal)}
                 </Text>
-                <View style={styles.discountChip}>
-                  <Text style={styles.discountChipText}>
-                    {data.discountPercent}% off
-                  </Text>
-                </View>
                 <Text style={styles.resumeDiscount}>
                   - {formatCurrency(data.discountAmount)}
                 </Text>
@@ -271,38 +291,34 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === "android" ? 16 : 20,
+    paddingTop: Platform.OS === "android" ? 40 : 68,
     paddingBottom: 12,
     gap: 12,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.base.gray100,
+    gap: 8,
   },
   headerTitle: {
-    flex: 1,
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: 14,
     color: colors.base.gray700,
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.feedback.infoLight,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
-    gap: 6,
+    borderRadius: 14,
+    gap: 8,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   statusBadgeText: {
     fontFamily: fontFamily.bold,
@@ -370,7 +386,7 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
     paddingBottom: 12,
   },
   cardHeaderTitle: {
@@ -424,12 +440,34 @@ const styles = StyleSheet.create({
   resumeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 12,
+  },
+  resumeLabelWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  discountInline: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
+  },
+  resumeRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  discountRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 4,
   },
   resumeLabel: {
     fontFamily: fontFamily.regular,
-    fontSize: 12,
+    fontSize: 14,
     color: colors.base.gray600,
   },
   resumeStriked: {
@@ -439,12 +477,10 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
   },
   discountChip: {
-    marginTop: 6,
-    alignSelf: "flex-end",
     backgroundColor: colors.feedback.successLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 6,
   },
   discountChipText: {
     fontFamily: fontFamily.bold,
@@ -454,7 +490,8 @@ const styles = StyleSheet.create({
   resumeDiscount: {
     fontFamily: fontFamily.bold,
     fontSize: 12,
-    color: colors.feedback.dangerBase,
+
+    color: colors.feedback.successDark,
     marginTop: 4,
   },
   resumeTotalRow: {
