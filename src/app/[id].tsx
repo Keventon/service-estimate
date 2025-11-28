@@ -1,4 +1,4 @@
-import { getServiceById } from "@/service/storage";
+import { deleteService, getServiceById } from "@/service/storage";
 import { colors } from "@/styles/colors";
 import { fontFamily } from "@/styles/fontFamily";
 import { ServiceDetail, ServiceStatus } from "@/types/service";
@@ -23,6 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { FeedbackModal } from "@/components/FeedbackModal";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -74,6 +75,21 @@ export default function ServiceDetailScreen() {
   const params = useLocalSearchParams();
   const paramId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [data, setData] = useState<ServiceDetail | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const hasDiscount =
+    data != null &&
+    (data.discountPercent ?? 0) > 0 &&
+    (data.discountAmount ?? 0) > 0;
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!data || isDeleting) return;
+    setIsDeleting(true);
+    await deleteService(data.id);
+    setIsDeleting(false);
+    setShowDeleteModal(false);
+    router.back();
+  }, [data, isDeleting, router]);
 
   useFocusEffect(
     useCallback(() => {
@@ -269,28 +285,54 @@ export default function ServiceDetailScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.7} style={styles.footerIconButton}>
-          <Trash2
-            size={18}
-            strokeWidth={1.6}
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            style={styles.footerIconButton}
+            onPress={() => setShowDeleteModal(true)}
+          >
+            <Trash2
+              size={18}
+              strokeWidth={1.6}
             color={colors.feedback.dangerBase}
           />
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.7} style={styles.footerIconButton}>
+        <TouchableOpacity activeOpacity={0.2} style={styles.footerIconButton}>
           <Copy size={18} strokeWidth={1.6} color={colors.base.gray600} />
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.7} style={styles.footerIconButton}>
+        <TouchableOpacity
+          activeOpacity={0.2}
+          style={styles.footerIconButton}
+          onPress={() =>
+            router.push({
+              pathname: "/editService",
+              params: { id: data.id.replace("#", "") },
+            })
+          }
+        >
           <Pencil
-            size={18}
-            strokeWidth={1.6}
-            color={colors.principal.purpleBase}
-          />
-        </TouchableOpacity>
+              size={18}
+              strokeWidth={1.6}
+              color={colors.principal.purpleBase}
+            />
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity activeOpacity={0.7} style={styles.footerShareButton}>
-          <Send size={20} strokeWidth={1.8} color={colors.white} />
+          <Send size={24} strokeWidth={1.8} color={colors.white} />
           <Text style={styles.footerShareText}>Compartilhar</Text>
         </TouchableOpacity>
       </View>
+
+      <FeedbackModal
+        visible={showDeleteModal}
+        type="danger"
+        title="Excluir orçamento"
+        description="Essa ação removerá o orçamento e seus serviços. Deseja continuar?"
+        confirmLabel={isDeleting ? "Removendo..." : "Excluir"}
+        cancelLabel="Cancelar"
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </View>
   );
 }
@@ -549,7 +591,7 @@ const styles = StyleSheet.create({
   },
   footerShareButton: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 40,
     height: 52,
     borderRadius: 99,
     backgroundColor: colors.principal.purpleBase,
@@ -560,7 +602,7 @@ const styles = StyleSheet.create({
   },
   footerShareText: {
     fontFamily: fontFamily.bold,
-    fontSize: 16,
+    fontSize: 14,
     color: colors.white,
   },
   fallbackText: {

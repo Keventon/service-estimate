@@ -39,6 +39,7 @@ export default function RootLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="newService" />
       <Stack.Screen name="[id]" />
+      <Stack.Screen name="editService" />
     </Stack>
   );
 }
