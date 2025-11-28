@@ -1,6 +1,6 @@
 import { Input } from "@/components/Input";
-import { colors } from "@/types/colors";
-import { fontFamily } from "@/types/fontFamily";
+import { colors } from "@/styles/colors";
+import { fontFamily } from "@/styles/fontFamily";
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
@@ -504,6 +504,7 @@ export default function NewService() {
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={snapPoints}
+        handleComponent={null}
         enablePanDownToClose
         index={isServiceSheetOpen ? 0 : -1}
         onChange={(idx) => {
@@ -521,7 +522,7 @@ export default function NewService() {
               onPress={handleCloseBottomSheet}
               activeOpacity={0.7}
             >
-              <X size={20} strokeWidth={2} color={colors.base.gray600} />
+              <X size={24} strokeWidth={1.5} color={colors.base.gray600} />
             </TouchableOpacity>
           </View>
 

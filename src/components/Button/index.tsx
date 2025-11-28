@@ -1,4 +1,4 @@
-import { colors } from "@/types/colors";
+import { colors } from "@/styles/colors";
 import { Plus } from "lucide-react-native";
 import { Text, TouchableOpacity, TouchableOpacityProps } from "react-native";
 import { styles } from "./styles";

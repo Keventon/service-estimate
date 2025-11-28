@@ -1,4 +1,4 @@
-import { colors } from "@/types/colors";
+import { colors } from "@/styles/colors";
 import { Search } from "lucide-react-native";
 import { TextInput, TextInputProps, View } from "react-native";
 import { styles } from "./styles";

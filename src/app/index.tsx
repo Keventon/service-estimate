@@ -6,9 +6,8 @@ import {
 } from "@/components/FilterBottomSheet";
 import { SearchInput } from "@/components/SearchInput";
 import { Service } from "@/components/Service";
-import { services } from "@/mocks";
-import { colors } from "@/types/colors";
-import { fontFamily } from "@/types/fontFamily";
+import { colors } from "@/styles/colors";
+import { fontFamily } from "@/styles/fontFamily";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { SlidersHorizontal } from "lucide-react-native";
@@ -28,6 +27,17 @@ export default function Index() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<StatusFilter[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>("recent");
+  const [servicesData] = useState<
+    Array<{
+      id: string;
+      title: string;
+      client: string;
+      amount: string;
+      statusLabel: string;
+      statusBackgroundColor: string;
+      statusDotColor: string;
+    }>
+  >([]);
 
   const snapPoints = useMemo(() => ["65%"], []);
 
@@ -116,24 +126,35 @@ export default function Index() {
         </View>
 
         <FlatList
-          data={services}
+          data={servicesData}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <Service
-              title={item.title}
-              client={item.client}
-              amount={item.amount}
-              statusLabel={item.statusLabel}
-              statusBackgroundColor={item.statusBackgroundColor}
-              statusDotColor={item.statusDotColor}
-            />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push(`/${item.id}`)}
+            >
+              <Service
+                title={item.title}
+                client={item.client}
+                amount={item.amount}
+                statusLabel={item.statusLabel}
+                statusBackgroundColor={item.statusBackgroundColor}
+                statusDotColor={item.statusDotColor}
+              />
+            </TouchableOpacity>
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 24,
             paddingBottom: 48,
+            paddingTop: 12,
           }}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          ListEmptyComponent={() => (
+            <Text style={styles.emptyText}>
+              Nenhum serviço listado. Adicione um novo para começar.
+            </Text>
+          )}
         />
 
         <FilterBottomSheet
@@ -191,5 +212,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
+  },
+  emptyText: {
+    textAlign: "center",
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: colors.base.gray500,
   },
 });

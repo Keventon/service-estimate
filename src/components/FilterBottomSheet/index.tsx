@@ -1,4 +1,4 @@
-import { colors } from "@/types/colors";
+import { colors } from "@/styles/colors";
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetProps,
@@ -90,7 +90,6 @@ export const FilterBottomSheet = forwardRef<BottomSheet, Props>(
         ref={ref}
         snapPoints={snapPoints}
         index={-1}
-        initialSnapIndex={-1}
         handleComponent={null}
         backdropComponent={renderBackdrop}
         enablePanDownToClose

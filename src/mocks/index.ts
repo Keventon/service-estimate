@@ -1,4 +1,4 @@
-import { colors } from "@/types/colors";
+import { colors } from "@/styles/colors";
 
 export const services = [
   {

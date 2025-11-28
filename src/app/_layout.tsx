@@ -1,5 +1,5 @@
 import { Loading } from "@/components/Loading";
-import { colors } from "@/types/colors";
+import { colors } from "@/styles/colors";
 import {
   Lato_400Regular,
   Lato_700Bold,
