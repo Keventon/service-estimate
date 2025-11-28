@@ -13,7 +13,7 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { SlidersHorizontal } from "lucide-react-native";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Platform,
@@ -38,8 +38,26 @@ export default function Index() {
       statusLabel: string;
       statusBackgroundColor: string;
       statusDotColor: string;
+      statusValue: "draft" | "sent" | "approved" | "rejected";
+      createdAtMs: number;
+      totalNumber: number;
     }>
   >([]);
+  const [filteredServices, setFilteredServices] = useState<
+    Array<{
+      id: string;
+      title: string;
+      client: string;
+      amount: string;
+      statusLabel: string;
+      statusBackgroundColor: string;
+      statusDotColor: string;
+      statusValue: "draft" | "sent" | "approved" | "rejected";
+      createdAtMs: number;
+      totalNumber: number;
+    }>
+  >([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const snapPoints = useMemo(() => ["65%"], []);
 
@@ -66,12 +84,57 @@ export default function Index() {
   const handleResetFilters = useCallback(() => {
     setSelectedStatuses([]);
     setSortOption("recent");
-  }, []);
+    setFilteredServices(servicesData);
+  }, [servicesData]);
+
+  const applyFilters = useCallback(() => {
+    let list = [...servicesData];
+
+    if (selectedStatuses.length > 0) {
+      const statusMap: Record<StatusFilter, "draft" | "sent" | "approved" | "rejected"> = {
+        Rascunho: "draft",
+        Enviado: "sent",
+        Aprovado: "approved",
+        Recusado: "rejected",
+      };
+      const allowed = selectedStatuses.map((s) => statusMap[s]);
+      list = list.filter((item) => allowed.includes(item.statusValue));
+    }
+
+    if (searchQuery.trim().length > 0) {
+      const query = searchQuery.toLowerCase();
+      list = list.filter(
+        (item) =>
+          item.title.toLowerCase().includes(query) ||
+          item.client.toLowerCase().includes(query)
+      );
+    }
+
+    list.sort((a, b) => {
+      switch (sortOption) {
+        case "old":
+          return a.createdAtMs - b.createdAtMs;
+        case "higher":
+          return b.totalNumber - a.totalNumber;
+        case "lower":
+          return a.totalNumber - b.totalNumber;
+        case "recent":
+        default:
+          return b.createdAtMs - a.createdAtMs;
+      }
+    });
+
+    setFilteredServices(list);
+  }, [servicesData, selectedStatuses, sortOption, searchQuery]);
 
   const handleApplyFilters = useCallback(() => {
-    // Conecte aqui a aplicação dos filtros na lista, se necessário
+    applyFilters();
     bottomSheetRef.current?.close();
-  }, []);
+  }, [applyFilters]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [servicesData, searchQuery, selectedStatuses, sortOption]);
 
   useFocusEffect(
     useCallback(() => {
@@ -114,8 +177,12 @@ export default function Index() {
               : item.status === "rejected"
               ? colors.feedback.dangerBase
               : colors.base.gray400,
+          statusValue: item.status,
+          createdAtMs: item.createdAt ? new Date(item.createdAt).getTime() : 0,
+          totalNumber: item.total ?? 0,
         }));
         setServicesData(mapped);
+        setFilteredServices(mapped);
       }
 
       load();
@@ -165,7 +232,11 @@ export default function Index() {
 
         <View style={styles.inputContainer}>
           <View style={styles.input}>
-            <SearchInput placeholder="Título ou cliente" />
+            <SearchInput
+              placeholder="Título ou cliente"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
 
           <TouchableOpacity
@@ -181,7 +252,7 @@ export default function Index() {
         </View>
 
         <FlatList
-          data={servicesData}
+          data={filteredServices}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <Service
