@@ -223,31 +223,43 @@ export default function ServiceDetailScreen() {
                 </View>
                 <View>
                   <Text style={styles.resumeLabel}>Subtotal</Text>
-                  <View style={styles.discountInline}>
-                    <Text style={styles.resumeLabel}>Desconto</Text>
-                    <View style={styles.discountChip}>
-                      <Text style={styles.discountChipText}>
-                        {data.discountPercent}% off
-                      </Text>
+                  {data.discountAmount > 0 && (
+                    <View style={styles.discountInline}>
+                      <Text style={styles.resumeLabel}>Desconto</Text>
+                      <View style={styles.discountChip}>
+                        <Text style={styles.discountChipText}>
+                          {data.discountPercent}% off
+                        </Text>
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </View>
               </View>
 
               <View style={{ alignItems: "flex-end", gap: 6 }}>
-                <Text style={styles.resumeStriked}>
+                <Text
+                  style={
+                    data.discountAmount > 0
+                      ? styles.resumeStriked
+                      : styles.resumeSubtotal
+                  }
+                >
                   {formatCurrency(data.subtotal)}
                 </Text>
-                <Text style={styles.resumeDiscount}>
-                  - {formatCurrency(data.discountAmount)}
-                </Text>
+                {data.discountAmount > 0 && (
+                  <Text style={styles.resumeDiscount}>
+                    - {formatCurrency(data.discountAmount)}
+                  </Text>
+                )}
               </View>
             </View>
 
             <View style={styles.divisor} />
 
             <View style={styles.resumeTotalRow}>
-              <Text style={styles.resumeTotalLabel}>Investimento total</Text>
+              <Text style={[styles.resumeTotalLabel, styles.resumeTotalOffset]}>
+                Investimento total
+              </Text>
               <Text style={styles.resumeTotal}>
                 {formatCurrency(data.total)}
               </Text>
@@ -476,6 +488,11 @@ const styles = StyleSheet.create({
     color: colors.base.gray500,
     textDecorationLine: "line-through",
   },
+  resumeSubtotal: {
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+    color: colors.base.gray700,
+  },
   discountChip: {
     backgroundColor: colors.feedback.successLight,
     paddingHorizontal: 10,
@@ -503,6 +520,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 14,
     color: colors.base.gray700,
+  },
+  resumeTotalOffset: {
+    paddingLeft: 46, // align with icon + gap from above rows
   },
   resumeTotal: {
     fontFamily: fontFamily.bold,
