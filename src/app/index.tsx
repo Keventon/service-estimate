@@ -242,6 +242,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 1,
     backgroundColor: colors.base.gray300,
+    marginHorizontal: -16,
+    alignSelf: "stretch",
   },
   inputContainer: {
     marginTop: 24,

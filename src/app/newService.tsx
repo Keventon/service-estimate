@@ -681,6 +681,8 @@ const styles = StyleSheet.create({
   divisor: {
     height: 1,
     backgroundColor: colors.base.gray300,
+    marginHorizontal: -16,
+    alignSelf: "stretch",
   },
   infoGeneralContainer: {
     marginHorizontal: 16,

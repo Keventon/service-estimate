@@ -4,6 +4,9 @@ import { fontFamily } from "@/styles/fontFamily";
 import { ServiceDetail, ServiceStatus } from "@/types/service";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import * as Clipboard from "expo-clipboard";
 import {
   ChevronLeft,
   ClipboardList,
@@ -22,6 +25,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { FeedbackModal } from "@/components/FeedbackModal";
 
@@ -77,6 +81,8 @@ export default function ServiceDetailScreen() {
   const [data, setData] = useState<ServiceDetail | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
   const hasDiscount =
     data != null &&
     (data.discountPercent ?? 0) > 0 &&
@@ -90,6 +96,152 @@ export default function ServiceDetailScreen() {
     setShowDeleteModal(false);
     router.back();
   }, [data, isDeleting, router]);
+
+  const handleShare = useCallback(async () => {
+    if (!data) return;
+    if (isSharing) return;
+
+    const servicesHtml = data.services
+      .map(
+        (item) => `
+          <tr>
+            <td style="padding:6px 0;">
+              <div style="font-size:14px;font-weight:700;color:#0F0F0F;">${item.title}</div>
+              <div style="font-size:12px;color:#676767;margin-top:2px;">${item.description}</div>
+            </td>
+            <td style="padding:6px 0;text-align:right;font-size:14px;font-weight:700;color:#0F0F0F;">${formatCurrency(
+              item.amount
+            )}</td>
+            <td style="padding:6px 0;text-align:right;font-size:12px;color:#676767;">Qt: ${
+              item.qty
+            }</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const hasDiscount =
+      (data.discountPercent ?? 0) > 0 && (data.discountAmount ?? 0) > 0;
+
+    const html = `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+        </head>
+        <body style="font-family:'Helvetica', sans-serif; color:#0F0F0F; padding:16px;">
+          <h2 style="margin:0 0 12px 0;">Orçamento ${data.id}</h2>
+          <div style="margin-bottom:16px;">
+            <div style="font-size:16px;font-weight:700;">${data.title}</div>
+            <div style="font-size:12px;color:#676767;margin-top:4px;">Cliente</div>
+            <div style="font-size:14px;">${data.client}</div>
+            <div style="display:flex; gap:16px; margin-top:8px; font-size:12px;color:#676767;">
+              <div>Criado em: ${formatDate(data.createdAt)}</div>
+              <div>Atualizado em: ${formatDate(data.updatedAt)}</div>
+            </div>
+          </div>
+
+          <div style="border:1px solid #E6E5E5; border-radius:8px; padding:12px;">
+            <div style="font-size:13px;color:#4A4A4A;margin-bottom:8px;">Serviços inclusos</div>
+            <table style="width:100%; border-collapse:collapse;">
+              <tbody>
+                ${servicesHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="border:1px solid #E6E5E5; border-radius:8px; padding:12px; margin-top:12px;">
+            <table style="width:100%; border-collapse:collapse;">
+              <tbody>
+                <tr>
+                  <td style="font-size:12px;color:#676767;">Subtotal</td>
+                  <td style="text-align:right; font-size:12px; color:${
+                    hasDiscount ? "#676767" : "#0F0F0F"
+                  }; ${hasDiscount ? "text-decoration: line-through;" : ""}">
+                    ${formatCurrency(data.subtotal)}
+                  </td>
+                </tr>
+                ${
+                  hasDiscount
+                    ? `<tr>
+                        <td style="font-size:12px;color:#676767;">Desconto</td>
+                        <td style="text-align:right; font-size:12px; color:#2E7D32;">
+                          - ${formatCurrency(data.discountAmount)}
+                        </td>
+                      </tr>`
+                    : ""
+                }
+                <tr>
+                  <td style="font-size:14px;font-weight:700;">Investimento total</td>
+                  <td style="text-align:right; font-size:16px;font-weight:700;">
+                    ${formatCurrency(data.total)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </body>
+      </html>
+    `;
+
+    setIsSharing(true);
+    try {
+      const { uri } = await Print.printToFileAsync({ html });
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri);
+      } else {
+        Alert.alert("Compartilhar", "O compartilhamento não está disponível neste dispositivo.");
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível gerar o PDF.");
+    } finally {
+      setIsSharing(false);
+    }
+  }, [data, isSharing]);
+
+  const handleCopy = useCallback(async () => {
+    if (!data || isCopying) return;
+    setIsCopying(true);
+
+    const servicesText = data.services
+      .map(
+        (item) =>
+          `- ${item.title} (Qt: ${item.qty}) - ${formatCurrency(item.amount)}`
+      )
+      .join("\n");
+
+    const hasDiscount =
+      (data.discountPercent ?? 0) > 0 && (data.discountAmount ?? 0) > 0;
+
+    const text = [
+      `Orçamento ${data.id}`,
+      `Título: ${data.title}`,
+      `Cliente: ${data.client}`,
+      `Status: ${getStatusData(data.status).label}`,
+      `Criado em: ${formatDate(data.createdAt)}`,
+      `Atualizado em: ${formatDate(data.updatedAt)}`,
+      "",
+      "Serviços:",
+      servicesText,
+      "",
+      `Subtotal: ${formatCurrency(data.subtotal)}`,
+      hasDiscount
+        ? `Desconto: - ${formatCurrency(data.discountAmount)} (${data.discountPercent}% off)`
+        : "Desconto: nenhum",
+      `Total: ${formatCurrency(data.total)}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    try {
+      await Clipboard.setStringAsync(text);
+      Alert.alert("Copiado", "Orçamento copiado para a área de transferência.");
+    } catch {
+      Alert.alert("Erro", "Não foi possível copiar o orçamento.");
+    } finally {
+      setIsCopying(false);
+    }
+  }, [data, isCopying]);
 
   useFocusEffect(
     useCallback(() => {
@@ -172,7 +324,7 @@ export default function ServiceDetailScreen() {
 
           <View style={styles.summaryDivider} />
 
-          <View style={styles.summaryRow}>
+          <View style={styles.summaryRowSingle}>
             <Text style={styles.summaryLabel}>Cliente</Text>
             <Text style={styles.summaryValue}>{data.client}</Text>
           </View>
@@ -297,7 +449,11 @@ export default function ServiceDetailScreen() {
             color={colors.feedback.dangerBase}
           />
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.2} style={styles.footerIconButton}>
+        <TouchableOpacity
+          activeOpacity={0.2}
+          style={styles.footerIconButton}
+          onPress={handleCopy}
+        >
           <Copy size={18} strokeWidth={1.6} color={colors.base.gray600} />
         </TouchableOpacity>
         <TouchableOpacity
@@ -311,16 +467,20 @@ export default function ServiceDetailScreen() {
           }
         >
           <Pencil
-              size={18}
-              strokeWidth={1.6}
-              color={colors.principal.purpleBase}
-            />
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity activeOpacity={0.7} style={styles.footerShareButton}>
-          <Send size={24} strokeWidth={1.8} color={colors.white} />
-          <Text style={styles.footerShareText}>Compartilhar</Text>
+            size={18}
+            strokeWidth={1.6}
+            color={colors.principal.purpleBase}
+          />
         </TouchableOpacity>
+      </View>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.footerShareButton}
+        onPress={handleShare}
+      >
+        <Send size={24} strokeWidth={1.8} color={colors.white} />
+        <Text style={styles.footerShareText}>Compartilhar</Text>
+      </TouchableOpacity>
       </View>
 
       <FeedbackModal
@@ -415,6 +575,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  summaryRowSingle: {
+    flexDirection: "column",
+    gap: 4,
+  },
   summaryLabel: {
     fontFamily: fontFamily.regular,
     fontSize: 12,
@@ -451,6 +615,8 @@ const styles = StyleSheet.create({
   divisor: {
     height: 1,
     backgroundColor: colors.base.gray300,
+    marginHorizontal: -16,
+    alignSelf: "stretch",
   },
   servicesList: {
     paddingVertical: 12,
